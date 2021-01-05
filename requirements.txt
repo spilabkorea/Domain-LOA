@@ -1,0 +1,4 @@
+hyperas==0.4.1
+hyperopt==0.2.5
+Keras==2.4.3
+tensorflow==2.4.0
