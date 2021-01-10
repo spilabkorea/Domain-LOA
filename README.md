@@ -12,13 +12,13 @@ Keras==2.4.3 , tensorflow==2.4.0 기반
 $ pip install -r requirements.txt
 ```
 
-## Autoencoder for HDFS
-
-HDFS의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder를 적용.
-
 ## Autoencoder for HTTP
 
 HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder를 적용.
+
+## Autoencoder for HDFS
+
+기존의 HTTP에서 진행된 방식에서 HDFS의 로그 기록 데이터로 변경하여 비지도 학습인 Autoencoder를 적용.
 
 ## Reference
 
