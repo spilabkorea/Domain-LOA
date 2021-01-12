@@ -1,2 +1,4 @@
 /data/*.h5
 /data/syslog.xls
+/data/syslog.csv
+/data/*_syslog.txt*

@@ -20,6 +20,10 @@ HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder�
 
 기존의 HTTP에서 진행된 방식에서 HDFS의 로그 기록 데이터로 변경하여 비지도 학습인 Autoencoder를 적용.
 
+## Autoencoder for syslog
+
+실제 데이터인 syslog 데이터에 autoencoder를 적용하여 결과 확인.
+
 ## Reference
 
 * Autoencoder : https://github.com/zpettry/AI-Autoencoder-for-HTTP-Log-Anomaly-Detection
