@@ -24,6 +24,13 @@ HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder�
 
 실제 데이터인 syslog 데이터에 autoencoder를 적용하여 결과 확인.
 
+#### NN_Autoencoder_Architecture
+
+![NN_Autoencoder_Architecture](./data/model_plot.png)
+
+#### LSTM_Autoencoder_Architecture
+![LSTM_Autoencoder_Architecture](./data/LSTM_model_plot.png)
+
 ## Reference
 
 * Autoencoder : https://github.com/zpettry/AI-Autoencoder-for-HTTP-Log-Anomaly-Detection
