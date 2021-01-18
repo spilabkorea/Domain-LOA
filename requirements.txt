@@ -1,5 +1,6 @@
 pandas
 sklearn
 matplotlib
+pydot
 Keras==2.4.3
 tensorflow==2.4.0
