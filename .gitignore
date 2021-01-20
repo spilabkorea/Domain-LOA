@@ -1,5 +1,6 @@
-/data/*.h5
-/data/syslog.xls
-/data/syslog.csv
-/data/*_syslog.txt*
-syslog.txt
+/data/*
+!/data/HDFS_100k.log_anomaly_label.csv
+!/data/HDFS_100k.log_structured.csv
+!/data/LSTM_model_plot.png
+!/data/model_plot.png
+!/data/weblog.csv
