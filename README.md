@@ -34,7 +34,7 @@ HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder�
 
 ### LDA for HDFS
 
-토픽 모델링 방법인 LDA 를 HDFS로그에 적용하였을때 나오는 결과를 통해 HDFS 데이터에 대한 이해.
+토픽 모델링 방법인 LDA 를 로그에 적용하였을때 나오는 결과를 통해 데이터에 대한 이해.
 
 ## Reference
 
