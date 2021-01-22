@@ -14,6 +14,9 @@ import re
 from sklearn.utils import shuffle
 from collections import OrderedDict
 
+def _custom_resampler(array_like):
+    return list(array_like)
+
 def _split_data(x_data, y_data=None, train_ratio=0, split_type='uniform'):
     if split_type == 'uniform' and y_data is not None:
         pos_idx = y_data > 0
@@ -211,7 +214,59 @@ def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split
     else:
         raise NotImplementedError('load_HDFS() only support csv and npz files!')
 
+def load_sys_time(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0):
+    """ Load HDFS structured log into train and test data
 
+    Arguments
+    ---------
+        log_file: str, the file path of structured log.
+        label_file: str, the file path of anomaly labels, None for unlabeled data
+        window: str, the window options including `session` (default).
+        train_ratio: float, the ratio of training data for train/test split.
+        split_type: `uniform` or `sequential`, which determines how to split dataset. `uniform` means
+            to split positive samples and negative samples equally when setting label_file. `sequential`
+            means to split the data sequentially without label_file. That is, the first part is for training,
+            while the second part is for testing.
+
+    Returns
+    -------
+        (x_train, y_train): the training data
+        (x_test, y_test): the testing data
+    """
+
+    print('====== Input data summary ======')
+
+    if log_file.endswith('.npz'):
+        # Split training and validation set in a class-uniform way
+        data = np.load(log_file)
+        x_data = data['x_data']
+        y_data = data['y_data']
+        (x_train, y_train), (x_test, y_test) = _split_data(x_data, y_data, train_ratio, split_type)
+
+    elif log_file.endswith('.csv'):
+        assert window == 'session', "Only window=session is supported for HDFS dataset."
+        print("Loading", log_file)
+        df = pd.read_csv(log_file, engine='c',
+                na_filter=False, memory_map=True)
+        
+        event_id_map = dict()
+        for i, event_id in enumerate(df['EventId'].unique(), 1):
+            event_id_map[event_id] = i
+            
+        df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'])
+        df = df[['datetime', 'EventId']]
+        df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+        data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
+        data_df.columns = ['datetime', 'EventSequence']
+        
+        if window_size > 0:
+            x_, window_y_ = slice_syslog(data_df, window_size)
+            log = "{} windows"
+            print(log.format("Train:", x_.shape[0]))
+            return x_, window_y_
+
+    else:
+        raise NotImplementedError('load_HDFS() only support csv and npz files!')
 
 def slice_syslog(x, window_size):
     results_data = []
