@@ -32,9 +32,13 @@ HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder�
 ![LSTM_Autoencoder_Architecture](./data/LSTM_model_plot.png)
 
 
-### LDA for HDFS
+### LDA for Dataset
 
 토픽 모델링 방법인 LDA 를 로그에 적용하였을때 나오는 결과를 통해 데이터에 대한 이해.
+
+### TF-IDF for Dataset
+
+정보 검색과 텍스트 마이닝에서 이용하는 가중치인 TF-IDF 를 로그에 적용하였을때 나오는 결과를 통해 데이터에 대한 이해.
 
 ## Reference
 
