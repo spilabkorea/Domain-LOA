@@ -44,4 +44,5 @@ HTTP의 로그 기록 데이터를 이용하여 비지도 학습인 Autoencoder�
 
 * Autoencoder : https://github.com/zpettry/AI-Autoencoder-for-HTTP-Log-Anomaly-Detection
 * HTTP Data : https://www.kaggle.com/shawon10/web-log-dataset#webLog.csv
-* HDFS Data & preprocess : https://github.com/logpai/loglizer 
+* HDFS Data & Lenma preprocess : https://github.com/logpai/loglizer 
+* Deeplog : https://github.com/nailo2c/deeplog
