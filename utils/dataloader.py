@@ -47,7 +47,7 @@ def _split_data(x_data, y_data=None, train_ratio=0, split_type='uniform'):
         y_train = y_train[indexes]
     return (x_train, y_train), (x_test, y_test)
 
-def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0):
+def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = False):
     """ Load HDFS structured log into train and test data
 
     Arguments
@@ -81,15 +81,28 @@ def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, spli
         print("Loading", log_file)
         struct_log = pd.read_csv(log_file, engine='c',
                 na_filter=False, memory_map=True)
-        data_dict = OrderedDict()
-        for idx, row in struct_log.iterrows():
-            blkId_list = re.findall(r'(blk_-?\d+)', row['Content'])
-            blkId_set = set(blkId_list)
-            for blk_Id in blkId_set:
-                if not blk_Id in data_dict:
-                    data_dict[blk_Id] = []
-                data_dict[blk_Id].append(row['EventId'])
-        data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
+        
+        if Time == False:
+            data_dict = OrderedDict()
+            for idx, row in struct_log.iterrows():
+                blkId_list = re.findall(r'(blk_-?\d+)', row['Content'])
+                blkId_set = set(blkId_list)
+                for blk_Id in blkId_set:
+                    if not blk_Id in data_dict:
+                        data_dict[blk_Id] = []
+                    data_dict[blk_Id].append(row['EventId'])
+            data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
+
+        elif Time == True:
+            event_id_map = dict()
+            for i, event_id in enumerate(struct_log['EventId'].unique(), 1):
+                event_id_map[event_id] = i
+
+            struct_log = struct_log[['Time', 'EventId']]
+            struct_log['EventId'] = struct_log['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+            data_df = struct_log.groupby('Time')['EventId'].apply(list).to_frame()
+            data_df = data_df.reset_index()
+            data_df.columns = ['BlockId', 'EventSequence']        
         
         if label_file:
             # Split training and validation set in a class-uniform way
@@ -107,7 +120,7 @@ def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, spli
         if save_csv:
             data_df.to_csv('data_instances.csv', index=False)
 
-        if window_size > 0:
+        if label_file and window_size > 0:
             x_train, window_y_train, y_train = slice_hdfs(x_train, y_train, window_size)
             x_test, window_y_test, y_test = slice_hdfs(x_test, y_test, window_size)
             log = "{} {} windows ({}/{} anomaly), {}/{} normal"
@@ -115,7 +128,13 @@ def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, spli
             print(log.format("Test:", x_test.shape[0], y_test.sum(), y_test.shape[0], (1-y_test).sum(), y_test.shape[0]))
             return (x_train, window_y_train, y_train), (x_test, window_y_test, y_test)
 
-        if label_file is None:
+        if (label_file is None) and window_size > 0:
+            x_, window_y_ = slice_syslog(data_df, window_size)
+            log = "{} windows"
+            print(log.format("Train:", x_.shape[0]))
+            return x_, window_y_
+
+        if label_file is None and window_size is None:
             if split_type == 'uniform':
                 split_type = 'sequential'
                 print('Warning: Only split_type=sequential is supported \
@@ -128,22 +147,6 @@ def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, spli
             return (x_train, None), (x_test, None), data_df
     else:
         raise NotImplementedError('load_HDFS() only support csv and npz files!')
-
-    num_train = x_train.shape[0]
-    num_test = x_test.shape[0]
-    num_total = num_train + num_test
-    num_train_pos = sum(y_train)
-    num_test_pos = sum(y_test)
-    num_pos = num_train_pos + num_test_pos
-
-    print('Total: {} instances, {} anomaly, {} normal' \
-          .format(num_total, num_pos, num_total - num_pos))
-    print('Train: {} instances, {} anomaly, {} normal' \
-          .format(num_train, num_train_pos, num_train - num_train_pos))
-    print('Test: {} instances, {} anomaly, {} normal\n' \
-          .format(num_test, num_test_pos, num_test - num_test_pos))
-
-    return (x_train, y_train), (x_test, y_test)
 
 def slice_hdfs(x, y, window_size):
     results_data = []
@@ -163,7 +166,7 @@ def slice_hdfs(x, y, window_size):
     print("Slicing done, {} windows generated".format(results_df.shape[0]))
     return results_df[["SessionId", "EventSequence"]], results_df["Label"], results_df["SessionLabel"]
 
-def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0):
+def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = False):
     """ Load HDFS structured log into train and test data
 
     Arguments
@@ -197,13 +200,27 @@ def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split
         print("Loading", log_file)
         struct_log = pd.read_csv(log_file, engine='c',
                 na_filter=False, memory_map=True)
-        data_dict = OrderedDict()
-        for idx, row in struct_log.iterrows():
-            blk_Id = row['PID']
-            if not blk_Id in data_dict:
-                data_dict[blk_Id] = []
-            data_dict[blk_Id].append(row['EventId'])
-        data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
+        
+        if Time == False:
+            data_dict = OrderedDict()
+            for idx, row in struct_log.iterrows():
+                blk_Id = row['PID']
+                if not blk_Id in data_dict:
+                    data_dict[blk_Id] = []
+                data_dict[blk_Id].append(row['EventId'])
+            data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
+
+        if Time == True:
+            df = struct_log
+            event_id_map = dict()
+            for i, event_id in enumerate(df['EventId'].unique(), 1):
+                event_id_map[event_id] = i
+                
+            df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'])
+            df = df[['datetime', 'EventId']]
+            df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+            data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
+            data_df.columns = ['datetime', 'EventSequence']
         
         if window_size > 0:
             x_, window_y_ = slice_syslog(data_df, window_size)
@@ -214,59 +231,6 @@ def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split
     else:
         raise NotImplementedError('load_HDFS() only support csv and npz files!')
 
-def load_sys_time(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0):
-    """ Load HDFS structured log into train and test data
-
-    Arguments
-    ---------
-        log_file: str, the file path of structured log.
-        label_file: str, the file path of anomaly labels, None for unlabeled data
-        window: str, the window options including `session` (default).
-        train_ratio: float, the ratio of training data for train/test split.
-        split_type: `uniform` or `sequential`, which determines how to split dataset. `uniform` means
-            to split positive samples and negative samples equally when setting label_file. `sequential`
-            means to split the data sequentially without label_file. That is, the first part is for training,
-            while the second part is for testing.
-
-    Returns
-    -------
-        (x_train, y_train): the training data
-        (x_test, y_test): the testing data
-    """
-
-    print('====== Input data summary ======')
-
-    if log_file.endswith('.npz'):
-        # Split training and validation set in a class-uniform way
-        data = np.load(log_file)
-        x_data = data['x_data']
-        y_data = data['y_data']
-        (x_train, y_train), (x_test, y_test) = _split_data(x_data, y_data, train_ratio, split_type)
-
-    elif log_file.endswith('.csv'):
-        assert window == 'session', "Only window=session is supported for HDFS dataset."
-        print("Loading", log_file)
-        df = pd.read_csv(log_file, engine='c',
-                na_filter=False, memory_map=True)
-        
-        event_id_map = dict()
-        for i, event_id in enumerate(df['EventId'].unique(), 1):
-            event_id_map[event_id] = i
-            
-        df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'])
-        df = df[['datetime', 'EventId']]
-        df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
-        data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
-        data_df.columns = ['datetime', 'EventSequence']
-        
-        if window_size > 0:
-            x_, window_y_ = slice_syslog(data_df, window_size)
-            log = "{} windows"
-            print(log.format("Train:", x_.shape[0]))
-            return x_, window_y_
-
-    else:
-        raise NotImplementedError('load_HDFS() only support csv and npz files!')
 
 def slice_syslog(x, window_size):
     results_data = []
