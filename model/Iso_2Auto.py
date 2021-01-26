@@ -12,6 +12,8 @@ def Iso_2Auto(train_dataset):
   encode = BatchNormalization()(encode)
   encode = Dense(input_dim//3, activation='relu',kernel_regularizer=regularizers.l2(0.01))(encode)
   encode = BatchNormalization()(encode)
+  encode = Dense(1, activation='relu',kernel_regularizer=regularizers.l2(0.01))(encode)
+  encode = BatchNormalization()(encode)
 
   decode = Dense(input_dim//3, activation='relu')(encode)
   decode = BatchNormalization()(decode)

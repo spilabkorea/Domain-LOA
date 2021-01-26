@@ -18,19 +18,19 @@ $ python compare.py
 
 
 
-### Model
+## Model
 
-#### NN_Autoencoder_Architecture
+### NN_Autoencoder_Architecture
 
 ![NN_Autoencoder_Architecture](./data/model_plot.png)
 
-#### LSTM_Autoencoder_Architecture
+### LSTM_Autoencoder_Architecture
 ![LSTM_Autoencoder_Architecture](./data/LSTM_model_plot.png)
 
-#### Isolation Forest + Autoencoder
+### Isolation Forest + Autoencoder
 
 
-#### Isolation Forest + Two Autoencoder
+### Isolation Forest + Two Autoencoder
 
 ## Reference
 
