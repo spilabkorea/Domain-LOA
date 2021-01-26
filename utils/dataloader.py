@@ -215,8 +215,12 @@ def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split
             event_id_map = dict()
             for i, event_id in enumerate(df['EventId'].unique(), 1):
                 event_id_map[event_id] = i
+            
+            try:
+                df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
+            except:
+                df['datetime'] = pd.to_datetime(df['Time'])
                 
-            df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'])
             df = df[['datetime', 'EventId']]
             df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
             data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()

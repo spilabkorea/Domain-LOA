@@ -4,3 +4,5 @@
 !/data/LSTM_model_plot.png
 !/data/model_plot.png
 !/data/weblog.csv
+*.csv
+!result.csv
