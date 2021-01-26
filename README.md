@@ -12,6 +12,12 @@ Keras==2.4.3 , tensorflow==2.4.0 기반
 $ pip install -r requirements.txt
 ```
 
+```
+$ python compare.py
+```
+
+
+
 ### Model
 
 #### NN_Autoencoder_Architecture
