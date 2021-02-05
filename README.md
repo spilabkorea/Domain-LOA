@@ -36,6 +36,13 @@ $ python compare.py
 
 * Autoencoder : https://github.com/zpettry/AI-Autoencoder-for-HTTP-Log-Anomaly-Detection
 * HTTP Data : https://www.kaggle.com/shawon10/web-log-dataset#webLog.csv
-* HDFS Data & Lenma preprocess : https://github.com/logpai/loglizer 
 * Deeplog : https://github.com/nailo2c/deeplog
-* Unsupervised log message anomaly detection : https://www.sciencedirect.com/science/article/pii/S2405959520300643
+* Amir Farzad, T. Aaron Gulliver, [Unsupervised log message anomaly detection](https://www.sciencedirect.com/science/article/pii/S2405959520300643), ICT Express, Volume 6, Issue 3, 2020.
+* [**ICSE'19**] Jieming Zhu, Shilin He, Jinyang Liu, Pinjia He, Qi Xie, Zibin Zheng, Michael R. Lyu. [Tools and Benchmarks for Automated Log Parsing](https://arxiv.org/pdf/1811.03509.pdf). *International Conference on Software Engineering (ICSE)*, 2019.
+   * github : https://github.com/logpai/logparser
+* [**DSN'16**] Pinjia He, Jieming Zhu, Shilin He, Jian Li, Michael R. Lyu. [An Evaluation Study on Log Parsing and Its Use in Log Mining](https://jiemingzhu.github.io/pub/pjhe_dsn2016.pdf). *IEEE/IFIP International Conference on Dependable Systems and Networks (DSN)*, 2016.
+  * github : https://github.com/logpai/logparser
+* Shilin He, Jieming Zhu, Pinjia He, Michael R. Lyu. [Experience Report: System Log Analysis for Anomaly Detection](https://jiemingzhu.github.io/pub/slhe_issre2016.pdf), *IEEE International Symposium on Software Reliability Engineering (ISSRE)*, 2016. [[Bibtex](https://dblp.org/rec/bibtex/conf/issre/HeZHL16)][[中文版本](https://github.com/AmateurEvents/article/issues/2)]
+  * github : https://github.com/logpai/loglizer
+* Shilin He, Jieming Zhu, Pinjia He, Michael R. Lyu. [Loghub: A Large Collection of System Log Datasets towards Automated Log Analytics](https://arxiv.org/abs/2008.06448). *Arxiv*, 2020. 
+  * github : https://github.com/logpai/loghub
