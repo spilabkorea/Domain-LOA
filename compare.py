@@ -42,10 +42,15 @@ train_dataset['x'] = scaler.fit_transform(train_dataset['x'])
 test_dataset['x'] = scaler.transform(test_dataset['x'])
 
 # train
-(y_, y_pred) = nn_autoencoder(train_dataset,test_dataset)
-result['nn_autoencoder'] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
-(y_, y_pred) = lstm_autoencoder(train_dataset,test_dataset)
+
+# (y_, y_pred) = nn_autoencoder(train_dataset,test_dataset)
+# result['nn_autoencoder'] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
+# (y_, y_pred) = lstm_autoencoder(train_dataset,test_dataset)
+# result['lstm_autoencoder'] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
+(y_, y_pred) = iso_2auto(train_dataset,test_dataset)
 result['lstm_autoencoder'] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
+# (y_, y_pred) = lstm_autoencoder(train_dataset,test_dataset)
+# result['lstm_autoencoder'] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
 
 print(result)
 print(pd.DataFrame(result, index = ['confusion_matrix','accuracy_score','f1_score']))

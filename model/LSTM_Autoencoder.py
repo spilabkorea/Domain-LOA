@@ -51,7 +51,7 @@ def lstm_autoencoder(train_dataset, test_dataset):
   plt.savefig('./result/lstm_auto_loss.png')
 
   # plot the loss distribution of the training set
-  X_pred = autoencoder.predict(x)
+  X_pred = model.predict(x)
   X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
   X_pred = pd.DataFrame(X_pred)
 
@@ -66,7 +66,7 @@ def lstm_autoencoder(train_dataset, test_dataset):
 
   # calculate the same metrics for the training set 
   # and merge all data in a single dataframe for plotting
-  X_pred_train = autoencoder.predict(x)
+  X_pred_train = model.predict(x)
   X_pred_train = X_pred_train.reshape(X_pred_train.shape[0], X_pred_train.shape[2])
   X_pred_train = pd.DataFrame(X_pred_train)
 
@@ -76,7 +76,7 @@ def lstm_autoencoder(train_dataset, test_dataset):
   scored_train['Anomaly'] = scored_train['Loss_mae'] > scored_train['Threshold']
   
   # calculate the loss on the test set
-  X_pred = autoencoder.predict(np.expand_dims(test_dataset['x'],axis=1))
+  X_pred = model.predict(np.expand_dims(test_dataset['x'],axis=1))
   X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
   X_pred = pd.DataFrame(X_pred)
 
