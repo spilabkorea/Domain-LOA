@@ -99,7 +99,7 @@ def iso_2auto(train_dataset,test_dataset):
   plt.title('Loss Distribution', fontsize=16)
   sns.distplot(train_scored['Loss_mae'], bins = 20, kde= True, color = 'blue');
   plt.xlim([0.0,.5])
-  plt.savefig('./result/2auto+iso_mae.png')
+  plt.savefig('./result/2auto+iso_loss_mae.png')
   
   # calculate the same metrics for the training set 
   # and merge all data in a single dataframe for plotting
