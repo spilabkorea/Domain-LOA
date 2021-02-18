@@ -14,20 +14,13 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 
 result = OrderedDict()
 
-train_ratio = 0.2
-window_size = 10
+# HDFS
 
-
-'''
-HDFS
-'''
 train_ratio = 0.8
 window_size = 10
 
-struct_log = './data/HDFS_100k.log_structured.csv' # The structured log file
-label_file = './data/HDFS_100k.log_anomaly_label.csv' # The anomaly label file
-
-df = pd.read_csv(struct_log)
+struct_log = './data/HDFS/HDFS_100k.log_structured.csv' # The structured log file
+label_file = './data/HDFS/HDFS_100k.log_anomaly_label.csv' # The anomaly label file
 
 (x_train, window_y_train, y_train), (x_test, window_y_test, y_test) = \
 dataloader.load_HDFS(struct_log, label_file=label_file, window='session',
@@ -40,6 +33,32 @@ test_dataset = feature_extractor.transform(x_test, window_y_test, y_test)
 scaler = MinMaxScaler()
 train_dataset['x'] = scaler.fit_transform(train_dataset['x'])
 test_dataset['x'] = scaler.transform(test_dataset['x'])
+
+# openstack
+
+train_ratio = 0.8
+window_size = 10
+
+train_log = '/data/OpenStack/openstack_normal1.log_structured.csv'
+test_log1 = '/data/OpenStack/openstack_normal2.log_structured.csv'
+test_log2 = '/data/OpenStack/openstack_abnormal.log_structured.csv'
+
+(x_train, window_y_train, y_train) = \
+dataloader.load_openstack(struct_log, label_file=label_file, window='session',
+                      window_size=window_size, train_ratio=train_ratio, split_type='uniform')
+
+(x_test, window_y_test, y_test) = \
+dataloader.load_openstack(struct_log, label_file=label_file, window='session',
+                      window_size=window_size, train_ratio=train_ratio, split_type='uniform')
+
+feature_extractor = Vectorizer()
+train_dataset = feature_extractor.fit_transform(x_train, window_y_train, y_train)
+test_dataset = feature_extractor.transform(x_test, window_y_test, y_test)
+
+scaler = MinMaxScaler()
+train_dataset['x'] = scaler.fit_transform(train_dataset['x'])
+test_dataset['x'] = scaler.transform(test_dataset['x'])
+
 
 # train
 print('== NN_AUtoencoder Train ==')

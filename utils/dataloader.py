@@ -1,12 +1,3 @@
-"""
-The interface to load log datasets. The datasets currently supported include
-HDFS and BGL.
-
-Authors:
-    LogPAI Team
-
-"""
-
 import pandas as pd
 import os
 import numpy as np
@@ -48,35 +39,8 @@ def _split_data(x_data, y_data=None, train_ratio=0, split_type='uniform'):
     return (x_train, y_train), (x_test, y_test)
 
 def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = False):
-    """ Load HDFS structured log into train and test data
-
-    Arguments
-    ---------
-        log_file: str, the file path of structured log.
-        label_file: str, the file path of anomaly labels, None for unlabeled data
-        window: str, the window options including `session` (default).
-        train_ratio: float, the ratio of training data for train/test split.
-        split_type: `uniform` or `sequential`, which determines how to split dataset. `uniform` means
-            to split positive samples and negative samples equally when setting label_file. `sequential`
-            means to split the data sequentially without label_file. That is, the first part is for training,
-            while the second part is for testing.
-
-    Returns
-    -------
-        (x_train, y_train): the training data
-        (x_test, y_test): the testing data
-    """
-
     print('====== Input data summary ======')
-
-    if log_file.endswith('.npz'):
-        # Split training and validation set in a class-uniform way
-        data = np.load(log_file)
-        x_data = data['x_data']
-        y_data = data['y_data']
-        (x_train, y_train), (x_test, y_test) = _split_data(x_data, y_data, train_ratio, split_type)
-
-    elif log_file.endswith('.csv'):
+    if log_file.endswith('.csv'):
         assert window == 'session', "Only window=session is supported for HDFS dataset."
         print("Loading", log_file)
         struct_log = pd.read_csv(log_file, engine='c',
@@ -167,35 +131,9 @@ def slice_hdfs(x, y, window_size):
     return results_df[["SessionId", "EventSequence"]], results_df["Label"], results_df["SessionLabel"]
 
 def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = False):
-    """ Load HDFS structured log into train and test data
-
-    Arguments
-    ---------
-        log_file: str, the file path of structured log.
-        label_file: str, the file path of anomaly labels, None for unlabeled data
-        window: str, the window options including `session` (default).
-        train_ratio: float, the ratio of training data for train/test split.
-        split_type: `uniform` or `sequential`, which determines how to split dataset. `uniform` means
-            to split positive samples and negative samples equally when setting label_file. `sequential`
-            means to split the data sequentially without label_file. That is, the first part is for training,
-            while the second part is for testing.
-
-    Returns
-    -------
-        (x_train, y_train): the training data
-        (x_test, y_test): the testing data
-    """
-
     print('====== Input data summary ======')
 
-    if log_file.endswith('.npz'):
-        # Split training and validation set in a class-uniform way
-        data = np.load(log_file)
-        x_data = data['x_data']
-        y_data = data['y_data']
-        (x_train, y_train), (x_test, y_test) = _split_data(x_data, y_data, train_ratio, split_type)
-
-    elif log_file.endswith('.csv'):
+    if log_file.endswith('.csv'):
         assert window == 'session', "Only window=session is supported for HDFS dataset."
         print("Loading", log_file)
         struct_log = pd.read_csv(log_file, engine='c',
@@ -253,3 +191,30 @@ def slice_syslog(x, window_size):
     results_df = pd.DataFrame(results_data, columns=["SessionId", "EventSequence", "Label"])
     print("Slicing done, {} windows generated".format(results_df.shape[0]))
     return results_df[["SessionId", "EventSequence"]], results_df["Label"]
+
+
+def load_openstack(log_file, label=0, window_size=0):
+    print("Loading", log_file)
+    struct_log = pd.read_csv(log_file, engine='c',
+                na_filter=False, memory_map=True)
+
+    df = struct_log
+    event_id_map = dict()
+    for i, event_id in enumerate(df['EventId'].unique(), 1):
+        event_id_map[event_id] = i
+    
+    try:
+        df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
+    except:
+        df['datetime'] = pd.to_datetime(df['Time'])
+        
+    df = df[['datetime', 'EventId']]
+    df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+    data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
+    data_df.columns = ['datetime', 'EventSequence']
+    
+    if window_size > 0:
+        x_, window_y_ = slice_syslog(data_df, window_size)
+        log = "{} windows"
+        print(log.format("Train:", x_.shape[0]))
+        return x_, window_y_, y_

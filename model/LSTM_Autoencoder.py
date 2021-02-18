@@ -18,9 +18,9 @@ def lstm_autoencoder(train_dataset, test_dataset):
   model.add(BatchNormalization())
   model.add(LSTM(x.shape[-1]//3, activation='relu', return_sequences=True))
   model.add(BatchNormalization())
-  model.add(LSTM(1, activation='relu', return_sequences=True))
+  model.add(LSTM(1, activation='relu', return_sequences=False))
   model.add(BatchNormalization())
-  # model.add(RepeatVector(10))
+  model.add(RepeatVector(1))
 
   # Decoder
   model.add(LSTM(x.shape[-1]//3, activation='relu', return_sequences=True))
