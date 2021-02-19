@@ -39,17 +39,15 @@ test_dataset['x'] = scaler.transform(test_dataset['x'])
 train_ratio = 0.8
 window_size = 10
 
-train_log = '/data/OpenStack/openstack_normal1.log_structured.csv'
-test_log1 = '/data/OpenStack/openstack_normal2.log_structured.csv'
-test_log2 = '/data/OpenStack/openstack_abnormal.log_structured.csv'
+train_log = './data/OpenStack/openstack_normal1.log_structured.csv'
+test_log1 = './data/OpenStack/openstack_normal2.log_structured.csv'
+test_log2 = './data/OpenStack/openstack_abnormal.log_structured.csv'
 
-(x_train, window_y_train, y_train) = \
-dataloader.load_openstack(struct_log, label_file=label_file, window='session',
-                      window_size=window_size, train_ratio=train_ratio, split_type='uniform')
+struct_log_list = [train_log,test_log1,test_log2]
+label_list = [0,0,1]
 
-(x_test, window_y_test, y_test) = \
-dataloader.load_openstack(struct_log, label_file=label_file, window='session',
-                      window_size=window_size, train_ratio=train_ratio, split_type='uniform')
+(x_train, window_y_train, y_train), (x_test, window_y_test, y_test) = \
+dataloader.load_openstack(struct_log_list, label_list=label_list, window_size=window_size)
 
 feature_extractor = Vectorizer()
 train_dataset = feature_extractor.fit_transform(x_train, window_y_train, y_train)

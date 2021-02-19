@@ -193,28 +193,31 @@ def slice_syslog(x, window_size):
     return results_df[["SessionId", "EventSequence"]], results_df["Label"]
 
 
-def load_openstack(log_file, label=0, window_size=0):
-    print("Loading", log_file)
-    struct_log = pd.read_csv(log_file, engine='c',
-                na_filter=False, memory_map=True)
+def load_openstack(log_file_list, label_list=[0,0,1], window_size=0):
+    print("Loading", log_file_list)
+    df = pd.DataFrame()
+    for log_file,label in zip(log_file_list,label_list):
+        struct_log = pd.read_csv(log_file, engine='c',
+                    na_filter=False, memory_map=True)
+        df = pd.concat([df,struct_log])
 
-    df = struct_log
     event_id_map = dict()
     for i, event_id in enumerate(df['EventId'].unique(), 1):
         event_id_map[event_id] = i
-    
+
     try:
         df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
     except:
         df['datetime'] = pd.to_datetime(df['Time'])
         
-    df = df[['datetime', 'EventId']]
+    df = df[['datetime', 'EventId','Label']]
     df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
     data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
     data_df.columns = ['datetime', 'EventSequence']
     
     if window_size > 0:
         x_, window_y_ = slice_syslog(data_df, window_size)
+        y_ = pd.Series([label]*len(window_y_))
         log = "{} windows"
         print(log.format("Train:", x_.shape[0]))
-        return x_, window_y_, y_
+        return (x_train, window_y_train, y_train), (x_test, window_y_test, y_test)
