@@ -58,15 +58,20 @@ def load_HDFS(log_file, label_file=None, window='session', train_ratio=0.5, spli
             data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
 
         elif Time == True:
+            df = struct_log
             event_id_map = dict()
-            for i, event_id in enumerate(struct_log['EventId'].unique(), 1):
+            for i, event_id in enumerate(df['EventId'].unique(), 1):
                 event_id_map[event_id] = i
-
-            struct_log = struct_log[['Time', 'EventId']]
-            struct_log['EventId'] = struct_log['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
-            data_df = struct_log.groupby('Time')['EventId'].apply(list).to_frame()
-            data_df = data_df.reset_index()
-            data_df.columns = ['BlockId', 'EventSequence']        
+            
+            try:
+                df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
+            except:
+                df['datetime'] = pd.to_datetime(df['Time'])
+                
+            df = df[['datetime', 'EventId']]
+            df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+            data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
+            data_df.columns = ['datetime', 'EventSequence']  
         
         if label_file:
             # Split training and validation set in a class-uniform way
@@ -193,3 +198,53 @@ def slice_syslog(x, window_size):
     return results_df[["SessionId", "EventSequence"]], results_df["Label"]
 
     
+def load_BGL(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = True):
+    print('====== Input data summary ======')
+    if log_file.endswith('.csv'):
+        print("Loading", log_file)
+        struct_log = pd.read_csv(log_file, engine='c',
+                na_filter=False, memory_map=True)
+        
+        if Time == True:
+            df = struct_log
+            event_id_map = dict()
+            for i, event_id in enumerate(df['EventId'].unique(), 1):
+                event_id_map[event_id] = i
+
+            df['datetime'] = pd.to_datetime(df['Time'],format='%Y-%m-%d-%H.%M.%S.%f')
+                
+            df = df[['datetime', 'EventId','Label']]
+            df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
+            df['Label'] = df['Label'].apply(lambda e: 0 if e == '-' else 1)
+            data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
+            data_df.columns = ['datetime', 'EventSequence','Label']
+            data_df = data_df[data_df['EventSequence'].str.len() != 0]
+        
+        # Split train and test data
+        (x_train, y_train), (x_test, y_test) = _split_data(data_df['EventSequence'].values, 
+            data_df['Label'].values, train_ratio, split_type)
+
+        if window_size > 0:
+            x_train, window_y_train, y_train = slice_BGL(x_train, y_train, window_size)
+            x_test, window_y_test, y_test = slice_BGL(x_test, y_test, window_size)
+            log = "{} {} windows ({}/{} anomaly), {}/{} normal"
+            print(log.format("Train:", x_train.shape[0], y_train.sum(), y_train.shape[0], (1-y_train).sum(), y_train.shape[0]))
+            print(log.format("Test:", x_test.shape[0], y_test.sum(), y_test.shape[0], (1-y_test).sum(), y_test.shape[0]))
+            return (x_train, window_y_train, y_train), (x_test, window_y_test, y_test)
+
+def slice_BGL(x, y, window_size):
+    results_data = []
+    for idx, sequence in enumerate(x):
+            seqlen = len(sequence)
+            i = 0
+            while (i + window_size) < seqlen:
+                slice = sequence[i: i + window_size]
+                results_data.append([idx, slice, sequence[i + window_size], y[idx][i + window_size]])
+                i += 1
+            else:
+                slice = sequence[i: i + window_size]
+                slice += ["#Pad"] * (window_size - len(slice))
+                results_data.append([idx, slice, "#Pad", 0])
+    results_df = pd.DataFrame(results_data, columns=["SessionId", "EventSequence", "Label", "SessionLabel"])
+    print("Slicing done, {} windows generated".format(results_df.shape[0]))
+    return results_df[["SessionId", "EventSequence"]], results_df["Label"], results_df["SessionLabel"]

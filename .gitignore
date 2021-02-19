@@ -1,5 +1,6 @@
 /data/*
 !/data/HDFS
+!/data/BGL
 !/data/LSTM_model_plot.png
 !/data/model_plot.png
 !/data/weblog.csv
