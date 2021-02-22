@@ -1,4 +1,4 @@
-# Log Anomaly Detection
+# Log anomaly detection on domain knowledge based deep one classifier with autoencoder
 
 ## Introduction
 
