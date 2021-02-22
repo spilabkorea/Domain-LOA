@@ -50,12 +50,18 @@ def iso_auto(train_dataset,test_dataset):
 					)
 
 	# plot the training losses
-	fig, ax = plt.subplots(figsize=(14, 6), dpi=80)
-	ax.plot(history.history['loss'], 'b', label='Train', linewidth=2)
-	ax.set_title('Model loss', fontsize=16)
-	ax.set_ylabel('Loss (mae)')
-	ax.set_xlabel('Epoch')
-	ax.legend(loc='upper right')
+	fig, loss_ax  = plt.subplots(figsize=(14, 6), dpi=80)
+	acc_ax = loss_ax.twinx()
+	loss_ax.plot(history.history['loss'], 'b', label='Train loss', linewidth=2)
+	loss_ax.set_xlabel('Epoch')
+	loss_ax.set_ylabel('Loss (mae)')
+	loss_ax.legend(loc='upper right')
+
+	acc_ax.plot(history.history['accuracy'], 'b', label='Train acc', linewidth=2)
+	acc_ax.set_ylabel('Accuracy')
+	acc_ax.legend(loc='upper right')
+
+	loss_ax.set_title('Model loss,acc', fontsize=16)
 	plt.savefig('./result/iso_auto_loss.png')
 
 	# plot the loss distribution of the training set

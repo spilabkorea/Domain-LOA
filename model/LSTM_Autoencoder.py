@@ -38,16 +38,22 @@ def lstm_autoencoder(train_dataset, test_dataset):
                       epochs=200, 
                       batch_size=128,
                       callbacks = [early_stopping])
-  
+
 
 
   # plot the training losses
-  fig, ax = plt.subplots(figsize=(14, 6), dpi=80)
-  ax.plot(history.history['loss'], 'b', label='Train', linewidth=2)
-  ax.set_title('Model loss', fontsize=16)
-  ax.set_ylabel('Loss (mae)')
-  ax.set_xlabel('Epoch')
-  ax.legend(loc='upper right')
+  fig, loss_ax  = plt.subplots(figsize=(14, 6), dpi=80)
+  acc_ax = loss_ax.twinx()
+  loss_ax.plot(history.history['loss'], 'b', label='Train loss', linewidth=2)
+  loss_ax.set_xlabel('Epoch')
+  loss_ax.set_ylabel('Loss (mae)')
+  loss_ax.legend(loc='upper right')
+
+  acc_ax.plot(history.history['accuracy'], 'b', label='Train acc', linewidth=2)
+  acc_ax.set_ylabel('Accuracy')
+  acc_ax.legend(loc='upper right')
+
+  loss_ax.set_title('Model loss,acc', fontsize=16)
   plt.savefig('./result/lstm_auto_loss.png')
 
   # plot the loss distribution of the training set
@@ -74,7 +80,7 @@ def lstm_autoencoder(train_dataset, test_dataset):
   scored_train['Loss_mae'] = np.mean(np.abs(X_pred_train-Xtrain), axis = 1)
   scored_train['Threshold'] = scored_train.quantile(0.9)[0]
   scored_train['Anomaly'] = scored_train['Loss_mae'] > scored_train['Threshold']
-  
+
   # calculate the loss on the test set
   X_pred = model.predict(np.expand_dims(test_dataset['x'],axis=1))
   X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])

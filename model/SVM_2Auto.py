@@ -7,10 +7,10 @@ import keras
 from keras import regularizers
 from keras.models import  Model, Sequential
 from keras.layers import Dense, Input, BatchNormalization
-from sklearn.ensemble import IsolationForest
+from sklearn.svm import OneClassSVM
 from keras.callbacks import EarlyStopping
 
-def iso_2auto(train_dataset,test_dataset):
+def svm_2auto(train_dataset,test_dataset):
 	input_dim = train_dataset['x'].shape[1]
 	input = Input(shape=(input_dim, ))
 	encode = Dense(input_dim//3*2, activation='relu',kernel_regularizer=regularizers.l2(0.01))(input)
@@ -42,7 +42,7 @@ def iso_2auto(train_dataset,test_dataset):
 
 	f1_pre = autoencoder1.predict(train_dataset['x'])
 
-	clf = IsolationForest(random_state = 42, contamination = 0.3)
+	clf =  OneClassSVM(gamma='auto')
 	clf.fit(f1_pre)
 	pred = clf.predict(f1_pre)
 
@@ -92,7 +92,7 @@ def iso_2auto(train_dataset,test_dataset):
 	acc_ax.legend(loc='upper right')
 
 	loss_ax.set_title('Model loss,acc', fontsize=16)
-	plt.savefig('./result/iso+2auto_loss.png')
+	plt.savefig('./result/svm+2auto_loss.png')
 
 	# plot the loss distribution of the training set
 	X_pred = autoencoder1.predict(train_dataset['x'])
@@ -106,7 +106,7 @@ def iso_2auto(train_dataset,test_dataset):
 	plt.title('Loss Distribution', fontsize=16)
 	sns.distplot(train_scored['Loss_mae'], bins = 20, kde= True, color = 'blue');
 	plt.xlim([0.0,.5])
-	plt.savefig('./result/iso+2auto_loss_mae.png')
+	plt.savefig('./result/svm+2auto_loss_mae.png')
 
 	# calculate the same metrics for the training set 
 	# and merge all data in a single dataframe for plotting
