@@ -135,68 +135,6 @@ def slice_hdfs(x, y, window_size):
     print("Slicing done, {} windows generated".format(results_df.shape[0]))
     return results_df[["SessionId", "EventSequence"]], results_df["Label"], results_df["SessionLabel"]
 
-def load_sys(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = False):
-    print('====== Input data summary ======')
-
-    if log_file.endswith('.csv'):
-        assert window == 'session', "Only window=session is supported for HDFS dataset."
-        print("Loading", log_file)
-        struct_log = pd.read_csv(log_file, engine='c',
-                na_filter=False, memory_map=True)
-        
-        if Time == False:
-            data_dict = OrderedDict()
-            for idx, row in struct_log.iterrows():
-                blk_Id = row['PID']
-                if not blk_Id in data_dict:
-                    data_dict[blk_Id] = []
-                data_dict[blk_Id].append(row['EventId'])
-            data_df = pd.DataFrame(list(data_dict.items()), columns=['BlockId', 'EventSequence'])
-
-        if Time == True:
-            df = struct_log
-            event_id_map = dict()
-            for i, event_id in enumerate(df['EventId'].unique(), 1):
-                event_id_map[event_id] = i
-            
-            try:
-                df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'])
-            except:
-                df['datetime'] = pd.to_datetime(df['Time'])
-                
-            df = df[['datetime', 'EventId']]
-            df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
-            data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
-            data_df.columns = ['datetime', 'EventSequence']
-        
-        if window_size > 0:
-            x_, window_y_ = slice_syslog(data_df, window_size)
-            log = "{} windows"
-            print(log.format("Train:", x_.shape[0]))
-            return x_, window_y_
-
-    else:
-        raise NotImplementedError('load_HDFS() only support csv and npz files!')
-
-
-def slice_syslog(x, window_size):
-    results_data = []
-    print("Slicing {} sessions, with window {}".format(x.shape[0], window_size))
-    for idx, sequence in enumerate(x['EventSequence']):
-        seqlen = len(sequence)
-        i = 0
-        while (i + window_size) < seqlen:
-            slice = sequence[i: i + window_size]
-            results_data.append([idx, slice, sequence[i + window_size]])
-            i += 1
-        else:
-            slice = sequence[i: i + window_size]
-            slice += ["#Pad"] * (window_size - len(slice))
-            results_data.append([idx, slice, "#Pad"])
-    results_df = pd.DataFrame(results_data, columns=["SessionId", "EventSequence", "Label"])
-    print("Slicing done, {} windows generated".format(results_df.shape[0]))
-    return results_df[["SessionId", "EventSequence"]], results_df["Label"]
-
     
 def load_BGL(log_file, label_file=None, window='session', train_ratio=0.5, split_type='sequential', save_csv=False, window_size=0, Time = True):
     print('====== Input data summary ======')
@@ -211,18 +149,14 @@ def load_BGL(log_file, label_file=None, window='session', train_ratio=0.5, split
             for i, event_id in enumerate(df['EventId'].unique(), 1):
                 event_id_map[event_id] = i
 
-            df['datetime'] = pd.to_datetime(df['Time'],format='%Y-%m-%d-%H.%M.%S.%f')
-                
-            df = df[['datetime', 'EventId','Label']]
+            df = df[['EventId','Label']]
             df['EventId'] = df['EventId'].apply(lambda e: event_id_map[e] if event_id_map.get(e) else -1)
             df['Label'] = df['Label'].apply(lambda e: 0 if e == '-' else 1)
-            data_df = df.set_index('datetime').resample('1min').apply(_custom_resampler).reset_index()
-            data_df.columns = ['datetime', 'EventSequence','Label']
-            data_df = data_df[data_df['EventSequence'].str.len() != 0]
+            df.columns = ['EventSequence','Label']
         
         # Split train and test data
-        (x_train, y_train), (x_test, y_test) = _split_data(data_df['EventSequence'].values, 
-            data_df['Label'].values, train_ratio, split_type)
+        (x_train, y_train), (x_test, y_test) = _split_data(df['EventSequence'].values, 
+            df['Label'].values, train_ratio, split_type)
 
         if window_size > 0:
             x_train, window_y_train, y_train = slice_BGL(x_train, y_train, window_size)
@@ -234,17 +168,12 @@ def load_BGL(log_file, label_file=None, window='session', train_ratio=0.5, split
 
 def slice_BGL(x, y, window_size):
     results_data = []
-    for idx, sequence in enumerate(x):
-            seqlen = len(sequence)
-            i = 0
-            while (i + window_size) < seqlen:
-                slice = sequence[i: i + window_size]
-                results_data.append([idx, slice, sequence[i + window_size], y[idx][i + window_size]])
-                i += 1
-            else:
-                slice = sequence[i: i + window_size]
-                slice += ["#Pad"] * (window_size - len(slice))
-                results_data.append([idx, slice, "#Pad", 0])
+    seqlen = len(x)
+    i = 0
+    while (i + window_size) < seqlen:
+        slice = x[i: i + window_size]
+        results_data.append([i, slice, x[i + window_size], y[i + window_size]])
+        i += 1
     results_df = pd.DataFrame(results_data, columns=["SessionId", "EventSequence", "Label", "SessionLabel"])
     print("Slicing done, {} windows generated".format(results_df.shape[0]))
     return results_df[["SessionId", "EventSequence"]], results_df["Label"], results_df["SessionLabel"]
