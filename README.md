@@ -17,7 +17,6 @@ $ python compare.py
 ```
 
 
-
 ## Model
 
 ### NN_Autoencoder_Architecture
