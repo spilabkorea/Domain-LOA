@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 import argparse
 
@@ -70,9 +71,11 @@ if __name__ == '__main__':
   
   for model_ in model_list:
     print('== {} Train =='.format(model_))
+    t1 = time.time()
     (y_, y_pred) = locals()[model_](train_dataset,test_dataset, args.threshold)
-    result['{}'.format(model_)] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred)]
+    t2 = time.time()
+    result['{}'.format(model_)] =  [confusion_matrix(y_, y_pred), accuracy_score(y_, y_pred) , f1_score(y_, y_pred), t2-t1]
 
-  accuracy_df = pd.DataFrame(result, index = ['confusion_matrix','accuracy_score','f1_score'])
+  accuracy_df = pd.DataFrame(result, index = ['confusion_matrix','accuracy_score','f1_score','time'])
   print(accuracy_df)
   accuracy_df.to_excel('./result/score.xlsx')

@@ -12,7 +12,9 @@ import seaborn as sns
 
 
 def iso_auto(train_dataset,test_dataset,threshold):
-	clf = IsolationForest(random_state = 42, contamination = 0.3)
+	iso_forest_rate = 0.3
+
+	clf = IsolationForest(random_state = 42, contamination = iso_forest_rate)
 	clf.fit(train_dataset['x'])
 	pred = clf.predict(train_dataset['x'])
 

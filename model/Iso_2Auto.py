@@ -11,6 +11,8 @@ from sklearn.ensemble import IsolationForest
 from keras.callbacks import EarlyStopping
 
 def iso_2auto(train_dataset,test_dataset,threshold):
+	iso_forest_rate = 0.3
+
 	input_dim = train_dataset['x'].shape[1]
 	input = Input(shape=(input_dim, ))
 	encode = Dense(input_dim//3*2, activation='relu',kernel_regularizer=regularizers.l2(0.01))(input)
@@ -42,7 +44,7 @@ def iso_2auto(train_dataset,test_dataset,threshold):
 
 	f1_pre = autoencoder1.predict(train_dataset['x'])
 
-	clf = IsolationForest(random_state = 42, contamination = 0.3)
+	clf = IsolationForest(random_state = 42, contamination = iso_forest_rate)
 	clf.fit(f1_pre)
 	pred = clf.predict(f1_pre)
 
