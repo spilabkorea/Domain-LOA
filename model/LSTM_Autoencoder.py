@@ -7,7 +7,7 @@ from keras.models import  Model, Sequential
 from keras.layers import Dense, LSTM , RepeatVector, TimeDistributed, BatchNormalization
 from keras.callbacks import EarlyStopping
 
-def lstm_autoencoder(train_dataset, test_dataset):
+def lstm_autoencoder(train_dataset, test_dataset, threshold):
   x = np.expand_dims(train_dataset['x'],axis=1)
 
   # LSTM Autoencoder
@@ -78,7 +78,7 @@ def lstm_autoencoder(train_dataset, test_dataset):
 
   scored_train = pd.DataFrame()
   scored_train['Loss_mae'] = np.mean(np.abs(X_pred_train-Xtrain), axis = 1)
-  scored_train['Threshold'] = scored_train.quantile(0.9)[0]
+  scored_train['Threshold'] = scored_train.quantile(threshold)[0]
   scored_train['Anomaly'] = scored_train['Loss_mae'] > scored_train['Threshold']
 
   # calculate the loss on the test set
@@ -89,11 +89,12 @@ def lstm_autoencoder(train_dataset, test_dataset):
   scored = pd.DataFrame()
   Xtest = test_dataset['x']
   scored['Loss_mae'] = np.mean(np.abs(X_pred-Xtest), axis = 1)
-  scored['Threshold'] =  scored_train.quantile(0.9)[0]
+  scored['Threshold'] =  scored_train.quantile(threshold)[0]
   scored['Anomaly'] = scored['Loss_mae'] > scored['Threshold']
   scored.head()
 
-  scored = pd.concat([scored_train, scored])
-  ture_ = pd.Series(train_dataset['y']).append(pd.Series(test_dataset['y']))
-
+	# scored = pd.concat([scored_train, scored])
+	# ture_ = pd.Series(train_dataset['y']).append(pd.Series(test_dataset['y']))
+  ture_ = pd.Series(test_dataset['y'])
+  
   return ture_,scored['Anomaly']

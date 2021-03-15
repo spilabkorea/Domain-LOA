@@ -10,7 +10,7 @@ from keras.layers import Dense, Input, BatchNormalization
 from sklearn.svm import OneClassSVM
 from keras.callbacks import EarlyStopping
 
-def svm_2auto(train_dataset,test_dataset):
+def svm_2auto(train_dataset,test_dataset,threshold):
 	input_dim = train_dataset['x'].shape[1]
 	input = Input(shape=(input_dim, ))
 	encode = Dense(input_dim//3*2, activation='relu',kernel_regularizer=regularizers.l2(0.01))(input)
@@ -115,7 +115,7 @@ def svm_2auto(train_dataset,test_dataset):
 
 	scored_train = pd.DataFrame()
 	scored_train['Loss_mae'] = np.mean(np.abs(X_pred_train-Xtrain), axis = 1)
-	scored_train['Threshold'] = scored_train.quantile(0.9)[0]
+	scored_train['Threshold'] = scored_train.quantile(threshold)[0]
 	scored_train['Anomaly'] = scored_train['Loss_mae'] > scored_train['Threshold']
 
 	# calculate the loss on the test set
@@ -125,11 +125,12 @@ def svm_2auto(train_dataset,test_dataset):
 	scored = pd.DataFrame()
 	Xtest = test_dataset['x']
 	scored['Loss_mae'] = np.mean(np.abs(X_pred-Xtest), axis = 1)
-	scored['Threshold'] =  scored_train.quantile(0.9)[0]
+	scored['Threshold'] =  scored_train.quantile(threshold)[0]
 	scored['Anomaly'] = scored['Loss_mae'] > scored['Threshold']
 	scored.head()
 
-	scored = pd.concat([scored_train, scored])
-	ture_ = pd.Series(train_dataset['y']).append(pd.Series(test_dataset['y']))
+	# scored = pd.concat([scored_train, scored])
+	# ture_ = pd.Series(train_dataset['y']).append(pd.Series(test_dataset['y']))
+	ture_ = pd.Series(test_dataset['y'])
 
 	return ture_,scored['Anomaly']
