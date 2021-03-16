@@ -1,6 +1,9 @@
 /data/*
+/data/HDFS/HDFS.log_anomaly_label.csv
+/data/HDFS/HDFS.log_structured.csv
 !/data/HDFS
 !/data/BGL
 !/data/LSTM_model_plot.png
 !/data/model_plot.png
+!/data/Unsupervised_log_message_anomaly_detection.jpg
 !/data/weblog.csv
