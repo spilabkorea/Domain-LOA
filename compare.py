@@ -69,7 +69,8 @@ if __name__ == '__main__':
 
   # train
   if args.model == None:
-    model_list = ['nn_autoencoder', 'lstm_autoencoder', 'iso_2auto', 'iso_auto', 'svm_auto', 'svm_2auto']
+    # , 'svm_auto', 'svm_2auto'
+    model_list = ['nn_autoencoder', 'lstm_autoencoder', 'iso_2auto', 'iso_auto']
   elif args.model != None:
     model_list = [args.model]
   

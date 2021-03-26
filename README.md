@@ -30,6 +30,7 @@ $ python compare.py
 
 
 ### Isolation Forest + Two Autoencoder
+Unsupervised log message anomaly detection
 ![Iso_2Autoencoder_Architecture](./data/Unsupervised_log_message_anomaly_detection.jpg)
 
 ## Reference
