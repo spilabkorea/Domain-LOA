@@ -4,6 +4,8 @@
 
 Log Anomaly Detection은 Anomaly Detection 의 한 분야로 서버의 기록된 log 데이터에서 특이 상황을 감지한다. 실시간으로 수많은 기록이 지나가는 로그 특정 상, 수 많은 기록 중 확인이 필요한 범위를 축소해주는 Log Anomaly Detection은 서버 관리자의 시간과 노력을 아낄수 있을 것으로 기대 된다.
 
+사용 된 Unsupervised log message anomaly detection 의 경우 paper 를 읽고 제작하여 원본 코드와 다를 수 있다.
+
 ## Running on Your Own Machine
 
 Keras==2.4.3 , tensorflow==2.4.0 기반
@@ -27,7 +29,7 @@ $ python compare.py
 ![LSTM_Autoencoder_Architecture](./data/LSTM_model_plot.png)
 
 ### Isolation Forest + Autoencoder
-
+![Iso_Autoencoder_Architecture](./data/Iso_Autoencoder_Architecture.jpg)
 
 ### Isolation Forest + Two Autoencoder
 Unsupervised log message anomaly detection
